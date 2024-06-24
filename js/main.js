@@ -7,13 +7,19 @@ input.addEventListener('keydown', function(event) {
     }
 });
 
-async function fetchData(tezosAddress, limit = 1000, offset = 0) {
+let offset=0;
+async function fetchData(tezosAddress) {
     try {
-        const response = await fetch(`https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&offset=${offset}`);
+		if (offset==0)
+			str=`https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000`;
+		else
+			str=`https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&lastId=${offset}`;
+        const response = await fetch(str);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
         const data = await response.json();
+		offset=data[data.length-1].id;
         return data;
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -21,17 +27,17 @@ async function fetchData(tezosAddress, limit = 1000, offset = 0) {
     }
 }
 
-async function fetchAllData(tezosAddress, limit = 1000) {
-    let offset = 0;
-    let allData = [];
+async function fetchAllData(tezosAddress,limit) {
 
-    while (offset < limit) {
-        const data = await fetchData(tezosAddress, limit, offset);
+    let allData = [];
+let counter = 0;
+    while (offset >=0 && counter<limit) {
+        const data = await fetchData(tezosAddress);
         if (!data || !Array.isArray(data) || data.length === 0) {
             break;
         }
         allData.push(...data);
-        offset += 1000;
+		counter += 1000;
     }
 
     return allData;
@@ -63,7 +69,7 @@ function parseTransactions(data, tezosAddress) {
 
         if (operation.sender && operation.target && operation.sender.address === tezosAddress && operation.amount !== "0") {
             const targetAddress = targetAlias;
-            const amount = operation.amount / 1000000;
+            const amount = operation.amount/1000000;
             if (outflowsMap.has(targetAddress)) {
                 outflowsMap.set(targetAddress, outflowsMap.get(targetAddress) + amount);
             } else {
@@ -72,7 +78,7 @@ function parseTransactions(data, tezosAddress) {
         }
         if (operation.target && operation.target.address === tezosAddress && operation.sender.address !== tezosAddress) {
             const senderAddress = senderAlias;
-            const amount = operation.amount / 1000000;
+            const amount = operation.amount/1000000;
             if (inflowsMap.has(senderAddress)) {
                 inflowsMap.set(senderAddress, inflowsMap.get(senderAddress) + amount);
             } else {
@@ -87,13 +93,13 @@ function parseTransactions(data, tezosAddress) {
     return { inflows, outflows, addressToAliasMap };
 }
 
-async function generateDataAndDrawDiagram(tezosAddress, limit) {
-    const data = await fetchAllData(tezosAddress, limit);
+async function generateDataAndDrawDiagram(tezosAddress,limit) {
+    const data = await fetchAllData(tezosAddress,limit);
     if (!data) {
         hideLoader();
         return;
     }
-
+	offset=0;
     const { inflows, outflows, addressToAliasMap } = parseTransactions(data, tezosAddress);
     hideLoaderAndDrawDiagram();
     drawSankeyDiagram(tezosAddress, inflows, outflows, addressToAliasMap);
@@ -113,7 +119,7 @@ document.getElementById('confirm-button').addEventListener('click', function() {
     const limit = document.getElementById('result-limit').value;
     document.getElementById('sankey-diagram').style.display = 'none';
     document.getElementById('loader').style.display = 'block';
-    generateDataAndDrawDiagram(targetAddress, limit);
+    generateDataAndDrawDiagram(targetAddress,limit);
 });
 
 document.getElementById('result-limit').addEventListener('input', function() {
