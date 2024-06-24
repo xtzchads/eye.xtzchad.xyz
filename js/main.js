@@ -4,11 +4,58 @@ let offset = 0;
 let history = [];
 let historyIndex = -1;
 
+document.addEventListener('DOMContentLoaded', function() {
+    const hash = location.hash.slice(1);
+    if (hash) {
+        const [address, resultLimitValue, tezLimitValue] = hash.split(',');
+        if (address) {
+            document.getElementById('target-address').value = address;
+        }
+        if (resultLimitValue) {
+            document.getElementById('result-limit').value = resultLimitValue;
+            document.getElementById('limit-value').textContent = resultLimitValue + ' txes';
+        }
+        if (tezLimitValue) {
+            document.getElementById('tez-limit').value = tezLimitValue;
+            document.getElementById('limit-tez').textContent = tezLimitValue + ' tez';
+        }
+        document.getElementById('confirm-button').click();
+    }
+});
+
 input.addEventListener('keydown', function(event) {
     if (event.keyCode === 13) {
         document.getElementById('confirm-button').click();
     }
 });
+
+document.getElementById('confirm-button').addEventListener('click', function() {
+    const targetAddress = document.getElementById('target-address').value.trim();
+    const limit = document.getElementById('result-limit').value;
+    updateLocationHash();
+    document.getElementById('sankey-diagram').style.display = 'none';
+    document.getElementById('loader').style.display = 'block';
+    generateDataAndDrawDiagram(targetAddress, limit);
+});
+
+document.getElementById('result-limit').addEventListener('input', function() {
+    const limitValue = document.getElementById('result-limit').value;
+    document.getElementById('limit-value').textContent = limitValue + ' txes';
+    updateLocationHash();
+});
+
+document.getElementById('tez-limit').addEventListener('input', function() {
+    const limitValue = document.getElementById('tez-limit').value;
+    document.getElementById('limit-tez').textContent = limitValue + ' tez';
+    updateLocationHash();
+});
+
+function updateLocationHash() {
+    const tezosAddress = document.getElementById('target-address').value.trim();
+    const resultLimitValue = document.getElementById('result-limit').value;
+    const tezLimitValue = document.getElementById('tez-limit').value;
+    location.hash = `${tezosAddress},${resultLimitValue},${tezLimitValue}`;
+}
 
 async function fetchData(tezosAddress) {
     try {
@@ -33,7 +80,10 @@ async function fetchData(tezosAddress) {
 
 async function fetchAllData(tezosAddress, limit) {
     if (cache.has(tezosAddress)) {
-        return cache.get(tezosAddress);
+        const cached = cache.get(tezosAddress);
+        if (cached.limit === limit) {
+            return cached.data;
+        }
     }
 
     let allData = [];
@@ -46,9 +96,11 @@ async function fetchAllData(tezosAddress, limit) {
         allData.push(...data);
         counter += 1000;
     }
-    cache.set(tezosAddress, allData);
+
+    cache.set(tezosAddress, { data: allData, limit: limit });
     return allData;
 }
+
 
 function parseTransactions(data, tezosAddress) {
     const inflowsMap = new Map();
@@ -127,24 +179,6 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-document.getElementById('confirm-button').addEventListener('click', function() {
-    const targetAddress = document.getElementById('target-address').value.trim();
-    const limit = document.getElementById('result-limit').value;
-    document.getElementById('sankey-diagram').style.display = 'none';
-    document.getElementById('loader').style.display = 'block';
-    generateDataAndDrawDiagram(targetAddress, limit);
-});
-
-document.getElementById('result-limit').addEventListener('input', function() {
-    const limitValue = document.getElementById('result-limit').value;
-    document.getElementById('limit-value').textContent = limitValue + ' txes';
-});
-
-document.getElementById('tez-limit').addEventListener('input', function() {
-    const limitValue = document.getElementById('tez-limit').value;
-    document.getElementById('limit-tez').textContent = limitValue + ' tez';
-});
-
 function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) {
     const nodes = [
         { label: addressToAliasMap.get(targetAddress) || targetAddress },
@@ -217,6 +251,7 @@ document.getElementById('back-button').addEventListener('click', function() {
         const previousAddress = history[historyIndex];
         document.getElementById('target-address').value = previousAddress;
         const limit = document.getElementById('result-limit').value;
+        updateLocationHash();
         generateDataAndDrawDiagram(previousAddress, limit);
         updateNavigationButtons();
     }
@@ -228,6 +263,7 @@ document.getElementById('forward-button').addEventListener('click', function() {
         const nextAddress = history[historyIndex];
         document.getElementById('target-address').value = nextAddress;
         const limit = document.getElementById('result-limit').value;
+        updateLocationHash();
         generateDataAndDrawDiagram(nextAddress, limit);
         updateNavigationButtons();
     }
@@ -269,9 +305,3 @@ function updateHistory(tezosAddress) {
 }
 
 updateNavigationButtons();
-
-document.getElementById('target-address').addEventListener('keydown', function(event) {
-    if (event.keyCode === 13) {
-        document.getElementById('confirm-button').click();
-    }
-});
