@@ -1,6 +1,6 @@
 # The Eye of Chad
 
-The Eye of Chad is a web application that visualizes Tezos blockchain transactions.
+The Eye of Chad is a web application that visualizes Tezos blockchain transactions with non-zero amounts of tez.
 
 There are two sliders - transaction depth slider and a dust filter slider (for the case when there are too many inputs or outputs)
 
