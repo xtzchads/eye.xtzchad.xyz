@@ -33,8 +33,6 @@ document.getElementById('confirm-button').addEventListener('click', function() {
     const targetAddress = document.getElementById('target-address').value.trim();
     const limit = document.getElementById('result-limit').value;
     updateLocationHash();
-    document.getElementById('sankey-diagram').style.display = 'none';
-    document.getElementById('loader').style.display = 'block';
     generateDataAndDrawDiagram(targetAddress, limit);
 });
 
@@ -88,6 +86,8 @@ async function fetchAllData(tezosAddress, limit) {
 
     let allData = [];
     let counter = 0;
+	document.getElementById('sankey-diagram').style.display = 'none';
+    document.getElementById('loader').style.display = 'block';
     while (offset >= 0 && counter < limit) {
         const data = await fetchData(tezosAddress);
         if (!data || !Array.isArray(data) || data.length === 0) {
