@@ -1,3 +1,12 @@
+const input = document.getElementById('target-address');
+
+// Add event listener for the keydown event
+input.addEventListener('keydown', function(event) {
+    if (event.keyCode === 13) {
+        document.getElementById('confirm-button').click();
+    }
+});
+
 async function fetchData(tezosAddress, limit = 1000, offset = 0) {
     try {
         const response = await fetch(`https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&offset=${offset}`);
