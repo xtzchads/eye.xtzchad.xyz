@@ -98,9 +98,6 @@ async function fetchData(tezosAddress, limit = 1000, offset = 0) {
             document.getElementById('limit-value').textContent = limitValue+' txes';
         });
 
-        
-        document.getElementById('limit-value').textContent = document.getElementById('result-limit').value;
-
         function drawSankeyDiagram(targetAddress, inflows, outflows) {
             const nodes = [
                 { label: targetAddress },
