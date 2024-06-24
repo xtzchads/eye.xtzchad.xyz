@@ -1,25 +1,29 @@
 const input = document.getElementById('target-address');
+const cache = new Map();
+let offset = 0;
+let history = [];
+let historyIndex = -1;
 
-// Add event listener for the keydown event
 input.addEventListener('keydown', function(event) {
     if (event.keyCode === 13) {
         document.getElementById('confirm-button').click();
     }
 });
 
-let offset=0;
 async function fetchData(tezosAddress) {
     try {
-		if (offset==0)
-			str=`https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000`;
-		else
-			str=`https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&lastId=${offset}`;
+        let str;
+        if (offset === 0) {
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000`;
+        } else {
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&lastId=${offset}`;
+        }
         const response = await fetch(str);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
         const data = await response.json();
-		offset=data[data.length-1].id;
+        offset = data[data.length - 1].id;
         return data;
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -27,19 +31,22 @@ async function fetchData(tezosAddress) {
     }
 }
 
-async function fetchAllData(tezosAddress,limit) {
+async function fetchAllData(tezosAddress, limit) {
+    if (cache.has(tezosAddress)) {
+        return cache.get(tezosAddress);
+    }
 
     let allData = [];
-let counter = 0;
-    while (offset >=0 && counter<limit) {
+    let counter = 0;
+    while (offset >= 0 && counter < limit) {
         const data = await fetchData(tezosAddress);
         if (!data || !Array.isArray(data) || data.length === 0) {
             break;
         }
         allData.push(...data);
-		counter += 1000;
+        counter += 1000;
     }
-
+    cache.set(tezosAddress, allData);
     return allData;
 }
 
@@ -69,7 +76,7 @@ function parseTransactions(data, tezosAddress) {
 
         if (operation.sender && operation.target && operation.sender.address === tezosAddress && operation.amount !== "0") {
             const targetAddress = targetAlias;
-            const amount = operation.amount/1000000;
+            const amount = operation.amount / 1000000;
             if (outflowsMap.has(targetAddress)) {
                 outflowsMap.set(targetAddress, outflowsMap.get(targetAddress) + amount);
             } else {
@@ -78,7 +85,7 @@ function parseTransactions(data, tezosAddress) {
         }
         if (operation.target && operation.target.address === tezosAddress && operation.sender.address !== tezosAddress) {
             const senderAddress = senderAlias;
-            const amount = operation.amount/1000000;
+            const amount = operation.amount / 1000000;
             if (inflowsMap.has(senderAddress)) {
                 inflowsMap.set(senderAddress, inflowsMap.get(senderAddress) + amount);
             } else {
@@ -88,23 +95,27 @@ function parseTransactions(data, tezosAddress) {
     });
 
     const tezLimit = document.getElementById('tez-limit').value;
-	const inflows = [...inflowsMap.entries()].map(([address, amount]) => ({ address, amount }))
-                                           .filter(entry => entry.amount >= tezLimit);
-	const outflows = [...outflowsMap.entries()].map(([address, amount]) => ({ address, amount }))
-                                           .filter(entry => entry.amount >= tezLimit);
+    const inflows = [...inflowsMap.entries()].map(([address, amount]) => ({ address, amount }))
+        .filter(entry => entry.amount >= tezLimit);
+    const outflows = [...outflowsMap.entries()].map(([address, amount]) => ({ address, amount }))
+        .filter(entry => entry.amount >= tezLimit);
     return { inflows, outflows, addressToAliasMap };
 }
 
-async function generateDataAndDrawDiagram(tezosAddress,limit) {
-    const data = await fetchAllData(tezosAddress,limit);
+async function generateDataAndDrawDiagram(tezosAddress, limit) {
+    const data = await fetchAllData(tezosAddress, limit);
     if (!data) {
         hideLoader();
         return;
     }
-	offset=0;
+    offset = 0;
     const { inflows, outflows, addressToAliasMap } = parseTransactions(data, tezosAddress);
     hideLoaderAndDrawDiagram();
     drawSankeyDiagram(tezosAddress, inflows, outflows, addressToAliasMap);
+    
+    if (historyIndex === -1 || history[historyIndex] !== tezosAddress) {
+        updateHistory(tezosAddress);
+    }
 }
 
 function hideLoaderAndDrawDiagram() {
@@ -121,13 +132,14 @@ document.getElementById('confirm-button').addEventListener('click', function() {
     const limit = document.getElementById('result-limit').value;
     document.getElementById('sankey-diagram').style.display = 'none';
     document.getElementById('loader').style.display = 'block';
-    generateDataAndDrawDiagram(targetAddress,limit);
+    generateDataAndDrawDiagram(targetAddress, limit);
 });
 
 document.getElementById('result-limit').addEventListener('input', function() {
     const limitValue = document.getElementById('result-limit').value;
     document.getElementById('limit-value').textContent = limitValue + ' txes';
 });
+
 document.getElementById('tez-limit').addEventListener('input', function() {
     const limitValue = document.getElementById('tez-limit').value;
     document.getElementById('limit-tez').textContent = limitValue + ' tez';
@@ -189,32 +201,77 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) 
             const clickedNodeLabel = event.points[0].source.pointNumber !== 0 ? event.points[0].source.label : event.points[0].target.label;
             const relatedAddress = Array.from(addressToAliasMap).find(([address, alias]) => alias === clickedNodeLabel)?.[0] || clickedNodeLabel;
             document.getElementById('target-address').value = relatedAddress.trim();
-			navigator.clipboard.writeText(relatedAddress.trim()).then(function () {
-            console.log('Value copied to clipboard:', valueToCopy);
-			}).catch(function (err) {
-            console.error('Could not copy text:', err);
-			});
+            navigator.clipboard.writeText(relatedAddress.trim()).then(function() {
+                console.log('Value copied to clipboard:', relatedAddress.trim());
+            }).catch(function(err) {
+                console.error('Could not copy text:', err);
+            });
             document.getElementById('confirm-button').click();
         }
     });
 }
-	const resultLimit = document.getElementById('result-limit');
-    const tezLimit = document.getElementById('tez-limit');
-    const resultLimitTooltip = document.getElementById('result-limit-tooltip');
-    const tezLimitTooltip = document.getElementById('tez-limit-tooltip');
-	
-	resultLimit.addEventListener('mouseenter', function () {
-        resultLimitTooltip.style.display = 'block';
-    });
 
-    resultLimit.addEventListener('mouseleave', function () {
-        resultLimitTooltip.style.display = 'none';
-    });
+document.getElementById('back-button').addEventListener('click', function() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        const previousAddress = history[historyIndex];
+        document.getElementById('target-address').value = previousAddress;
+        const limit = document.getElementById('result-limit').value;
+        generateDataAndDrawDiagram(previousAddress, limit);
+        updateNavigationButtons();
+    }
+});
 
-    tezLimit.addEventListener('mouseenter', function () {
-        tezLimitTooltip.style.display = 'block';
-    });
+document.getElementById('forward-button').addEventListener('click', function() {
+    if (historyIndex < history.length - 1) {
+        historyIndex++;
+        const nextAddress = history[historyIndex];
+        document.getElementById('target-address').value = nextAddress;
+        const limit = document.getElementById('result-limit').value;
+        generateDataAndDrawDiagram(nextAddress, limit);
+        updateNavigationButtons();
+    }
+});
 
-    tezLimit.addEventListener('mouseleave', function () {
-        tezLimitTooltip.style.display = 'none';
-    });
+function updateNavigationButtons() {
+    document.getElementById('back-button').disabled = historyIndex <= 0;
+    document.getElementById('forward-button').disabled = historyIndex >= history.length - 1;
+}
+
+const resultLimit = document.getElementById('result-limit');
+const tezLimit = document.getElementById('tez-limit');
+const resultLimitTooltip = document.getElementById('result-limit-tooltip');
+const tezLimitTooltip = document.getElementById('tez-limit-tooltip');
+
+resultLimit.addEventListener('mouseenter', function() {
+    resultLimitTooltip.style.display = 'block';
+});
+
+resultLimit.addEventListener('mouseleave', function() {
+    resultLimitTooltip.style.display = 'none';
+});
+
+tezLimit.addEventListener('mouseenter', function() {
+    tezLimitTooltip.style.display = 'block';
+});
+
+tezLimit.addEventListener('mouseleave', function() {
+    tezLimitTooltip.style.display = 'none';
+});
+
+function updateHistory(tezosAddress) {
+    if (historyIndex < history.length - 1) {
+        history = history.slice(0, historyIndex + 1);
+    }
+    history.push(tezosAddress);
+    historyIndex = history.length - 1;
+    updateNavigationButtons();
+}
+
+updateNavigationButtons();
+
+document.getElementById('target-address').addEventListener('keydown', function(event) {
+    if (event.keyCode === 13) {
+        document.getElementById('confirm-button').click();
+    }
+});
