@@ -5,28 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Eye of Chad</title>
     <script src="js/plotly.min.js"></script>
-	<link rel="stylesheet" href="css/main.css?x=1">
+    <link rel="stylesheet" href="css/main.css?x=2">
 </head>
 <body>
     <div id="container">
-       
         <div id="input-container">
-	<a href="https://github.com/xtzchads/eye.xtzchad.xyz" class="icon-link" target="_blank">
+            <a href="https://github.com/xtzchads/eye.xtzchad.xyz" class="icon-link" target="_blank">
                 <img src="icons/Tezos-social-icon-black-04.png" alt="Tezos Icon" />
             </a>
-	 <h1>The Eye of Chad</h1>
+            <h1>The Eye of Chad</h1>
             <input type="text" id="target-address" placeholder="Enter Tezos address">
-            <div id="slider-container">
+            <div class="slider-container">
                 <input type="range" id="result-limit" name="result-limit" min="1000" max="100000" step="1000" value="1000">
                 <span id="limit-value">1000 txes</span>
+                <span class="tooltip" id="result-limit-tooltip">Transaction search depth</span>
+            </div>
+            <div class="slider-container">
+                <input type="range" id="tez-limit" name="tez-limit" min="0" max="10000" step="100" value="0">
+                <span id="limit-tez">0 tez</span>
+                <span class="tooltip" id="tez-limit-tooltip">Display nodes with amounts greater than</span>
             </div>
             <button id="confirm-button"><img src="icons/1.png" alt="Confirm"></button>
         </div>
-        
         <div id="sankey-diagram"></div>
         <div class="loader" id="loader"></div>
     </div>
-
-    <script src="js/main.js?x=1"></script>
+    <script src="js/main.js?x=2"></script>
 </body>
 </html>
