@@ -189,6 +189,11 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) 
             const clickedNodeLabel = event.points[0].source.pointNumber !== 0 ? event.points[0].source.label : event.points[0].target.label;
             const relatedAddress = Array.from(addressToAliasMap).find(([address, alias]) => alias === clickedNodeLabel)?.[0] || clickedNodeLabel;
             document.getElementById('target-address').value = relatedAddress.trim();
+			navigator.clipboard.writeText(relatedAddress.trim()).then(function () {
+            console.log('Value copied to clipboard:', valueToCopy);
+			}).catch(function (err) {
+            console.error('Could not copy text:', err);
+			});
             document.getElementById('confirm-button').click();
         }
     });
