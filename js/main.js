@@ -87,9 +87,11 @@ function parseTransactions(data, tezosAddress) {
         }
     });
 
-    const inflows = [...inflowsMap.entries()].map(([address, amount]) => ({ address, amount }));
-    const outflows = [...outflowsMap.entries()].map(([address, amount]) => ({ address, amount }));
-
+    const tezLimit = document.getElementById('tez-limit').value;
+	const inflows = [...inflowsMap.entries()].map(([address, amount]) => ({ address, amount }))
+                                           .filter(entry => entry.amount >= tezLimit);
+	const outflows = [...outflowsMap.entries()].map(([address, amount]) => ({ address, amount }))
+                                           .filter(entry => entry.amount >= tezLimit);
     return { inflows, outflows, addressToAliasMap };
 }
 
@@ -125,6 +127,10 @@ document.getElementById('confirm-button').addEventListener('click', function() {
 document.getElementById('result-limit').addEventListener('input', function() {
     const limitValue = document.getElementById('result-limit').value;
     document.getElementById('limit-value').textContent = limitValue + ' txes';
+});
+document.getElementById('tez-limit').addEventListener('input', function() {
+    const limitValue = document.getElementById('tez-limit').value;
+    document.getElementById('limit-tez').textContent = limitValue + ' tez';
 });
 
 function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) {
@@ -187,3 +193,23 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) 
         }
     });
 }
+	const resultLimit = document.getElementById('result-limit');
+    const tezLimit = document.getElementById('tez-limit');
+    const resultLimitTooltip = document.getElementById('result-limit-tooltip');
+    const tezLimitTooltip = document.getElementById('tez-limit-tooltip');
+	
+	resultLimit.addEventListener('mouseenter', function () {
+        resultLimitTooltip.style.display = 'block';
+    });
+
+    resultLimit.addEventListener('mouseleave', function () {
+        resultLimitTooltip.style.display = 'none';
+    });
+
+    tezLimit.addEventListener('mouseenter', function () {
+        tezLimitTooltip.style.display = 'block';
+    });
+
+    tezLimit.addEventListener('mouseleave', function () {
+        tezLimitTooltip.style.display = 'none';
+    });
