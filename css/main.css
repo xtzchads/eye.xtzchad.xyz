@@ -77,7 +77,6 @@
         #sankey-diagram {
             width: 100%;
             max-width: 100%;
-            height: 600px;
             margin-top: 20px;
             box-sizing: border-box;
             display: none;
