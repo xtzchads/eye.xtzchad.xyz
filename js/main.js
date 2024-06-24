@@ -95,7 +95,7 @@ async function fetchData(tezosAddress, limit = 1000, offset = 0) {
 
         document.getElementById('result-limit').addEventListener('input', function() {
             const limitValue = document.getElementById('result-limit').value;
-            document.getElementById('limit-value').textContent = limitValue;
+            document.getElementById('limit-value').textContent = limitValue+' txes';
         });
 
         
