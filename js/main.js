@@ -1,13 +1,15 @@
+// Element references
 const input = document.getElementById('target-address');
-const cache = new Map();
-let offset = 0;
-let history = [];
-let historyIndex = -1;
+const cache = new Map(); // Cache to store fetched data
+let offset = 0; // Offset for pagination
+let history = []; // History of visited addresses
+let historyIndex = -1; // Index in the history array
 
+// On page load, check the location hash for saved values and populate inputs
 document.addEventListener('DOMContentLoaded', function() {
-    const hash = location.hash.slice(1);
+    const hash = location.hash.slice(1); // Get the hash without the leading #
     if (hash) {
-        const [address, resultLimitValue, tezLimitValue] = hash.split(',');
+        const [address, resultLimitValue, tezLimitValue] = hash.split(','); // Parse the hash
         if (address) {
             document.getElementById('target-address').value = address;
         }
@@ -19,35 +21,40 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('tez-limit').value = tezLimitValue;
             document.getElementById('limit-tez').textContent = tezLimitValue + ' tez';
         }
-        document.getElementById('confirm-button').click();
+        document.getElementById('confirm-button').click(); // Trigger data fetch and diagram generation
     }
 });
 
+// Trigger data fetch on Enter key press in the address input field
 input.addEventListener('keydown', function(event) {
     if (event.keyCode === 13) {
         document.getElementById('confirm-button').click();
     }
 });
 
+// Handle confirm button click to fetch and display data
 document.getElementById('confirm-button').addEventListener('click', function() {
     const targetAddress = document.getElementById('target-address').value.trim();
     const limit = document.getElementById('result-limit').value;
-    updateLocationHash();
-    generateDataAndDrawDiagram(targetAddress, limit);
+    updateLocationHash(); // Update location hash
+    generateDataAndDrawDiagram(targetAddress, limit); // Fetch data and draw diagram
 });
 
+// Update limit display and location hash on input change
 document.getElementById('result-limit').addEventListener('input', function() {
     const limitValue = document.getElementById('result-limit').value;
     document.getElementById('limit-value').textContent = limitValue + ' txes';
     updateLocationHash();
 });
 
+// Update tez limit display and location hash on input change
 document.getElementById('tez-limit').addEventListener('input', function() {
     const limitValue = document.getElementById('tez-limit').value;
     document.getElementById('limit-tez').textContent = limitValue + ' tez';
     updateLocationHash();
 });
 
+// Update the location hash with current input values
 function updateLocationHash() {
     const tezosAddress = document.getElementById('target-address').value.trim();
     const resultLimitValue = document.getElementById('result-limit').value;
@@ -55,6 +62,7 @@ function updateLocationHash() {
     location.hash = `${tezosAddress},${resultLimitValue},${tezLimitValue}`;
 }
 
+// Fetch data from API with pagination and cache check
 async function fetchData(tezosAddress) {
     try {
         let str;
@@ -76,6 +84,7 @@ async function fetchData(tezosAddress) {
     }
 }
 
+// Fetch all data, respecting cache and limit
 async function fetchAllData(tezosAddress, limit) {
     if (cache.has(tezosAddress)) {
         const cached = cache.get(tezosAddress);
@@ -86,7 +95,7 @@ async function fetchAllData(tezosAddress, limit) {
 
     let allData = [];
     let counter = 0;
-	document.getElementById('sankey-diagram').style.display = 'none';
+    document.getElementById('sankey-diagram').style.display = 'none';
     document.getElementById('loader').style.display = 'block';
     while (offset >= 0 && counter < limit) {
         const data = await fetchData(tezosAddress);
@@ -101,7 +110,7 @@ async function fetchAllData(tezosAddress, limit) {
     return allData;
 }
 
-
+// Parse transaction data into inflows, outflows, and aliases
 function parseTransactions(data, tezosAddress) {
     const inflowsMap = new Map();
     const outflowsMap = new Map();
@@ -154,6 +163,7 @@ function parseTransactions(data, tezosAddress) {
     return { inflows, outflows, addressToAliasMap };
 }
 
+// Generate data, draw diagram, and manage history
 async function generateDataAndDrawDiagram(tezosAddress, limit) {
     const data = await fetchAllData(tezosAddress, limit);
     if (!data) {
@@ -170,15 +180,18 @@ async function generateDataAndDrawDiagram(tezosAddress, limit) {
     }
 }
 
+// Hide loader and show diagram
 function hideLoaderAndDrawDiagram() {
     document.getElementById('sankey-diagram').style.display = 'block';
     document.getElementById('loader').style.display = 'none';
 }
 
+// Hide loader
 function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
+// Draw the Sankey diagram using Plotly
 function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) {
     const nodes = [
         { label: addressToAliasMap.get(targetAddress) || targetAddress },
@@ -229,6 +242,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) 
         height: optimalHeight
     });
 
+    // Handle node click in the Sankey diagram
     const sankeyContainer = document.getElementById('sankey-diagram');
     sankeyContainer.on('plotly_click', function(event) {
         if (event && event.points && event.points.length > 0) {
@@ -245,6 +259,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) 
     });
 }
 
+// Handle back button click to navigate to previous address
 document.getElementById('back-button').addEventListener('click', function() {
     if (historyIndex > 0) {
         historyIndex--;
@@ -257,6 +272,7 @@ document.getElementById('back-button').addEventListener('click', function() {
     }
 });
 
+// Handle forward button click to navigate to next address
 document.getElementById('forward-button').addEventListener('click', function() {
     if (historyIndex < history.length - 1) {
         historyIndex++;
@@ -269,11 +285,13 @@ document.getElementById('forward-button').addEventListener('click', function() {
     }
 });
 
+// Update navigation button states
 function updateNavigationButtons() {
     document.getElementById('back-button').disabled = historyIndex <= 0;
     document.getElementById('forward-button').disabled = historyIndex >= history.length - 1;
 }
 
+// Tooltips for input fields
 const resultLimit = document.getElementById('result-limit');
 const tezLimit = document.getElementById('tez-limit');
 const resultLimitTooltip = document.getElementById('result-limit-tooltip');
@@ -295,6 +313,7 @@ tezLimit.addEventListener('mouseleave', function() {
     tezLimitTooltip.style.display = 'none';
 });
 
+// Update history with the new address
 function updateHistory(tezosAddress) {
     if (historyIndex < history.length - 1) {
         history = history.slice(0, historyIndex + 1);
@@ -304,4 +323,4 @@ function updateHistory(tezosAddress) {
     updateNavigationButtons();
 }
 
-updateNavigationButtons();
+updateNavigationButtons(); // Initial call to set the state of navigation buttons
