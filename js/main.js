@@ -117,10 +117,11 @@ function parseTransactions(data, tezosAddress) {
     const addressToAliasMap = new Map();
     const addressTxCount = new Map();
     const addressDateRange = new Map();
+    const txHashesMap = new Map();
 
     if (!data || !Array.isArray(data)) {
         console.error('Invalid data format');
-        return { inflows: [], outflows: [], addressToAliasMap: new Map() };
+        return { inflows: [], outflows: [], addressToAliasMap: new Map(), txHashesMap: new Map() };
     }
 
     data.forEach(operation => {
@@ -151,10 +152,12 @@ function parseTransactions(data, tezosAddress) {
                     start: new Date(timestamp),
                     end: dateRange.end
                 });
+                txHashesMap.get(targetAddress).push(operation.hash);
             } else {
                 outflowsMap.set(targetAddress, amount);
                 addressTxCount.set(targetAddress, 1);
                 addressDateRange.set(targetAddress, { start: timestamp, end: timestamp });
+                txHashesMap.set(targetAddress, [operation.hash]);
             }
         }
         if (operation.target && operation.target.address === tezosAddress && operation.sender.address !== tezosAddress) {
@@ -169,10 +172,12 @@ function parseTransactions(data, tezosAddress) {
                     start: new Date(timestamp),
                     end: dateRange.end
                 });
+                txHashesMap.get(senderAddress).push(operation.hash);
             } else {
                 inflowsMap.set(senderAddress, amount);
                 addressTxCount.set(senderAddress, 1);
                 addressDateRange.set(senderAddress, { start: timestamp, end: timestamp });
+                txHashesMap.set(senderAddress, [operation.hash]);
             }
         }
     });
@@ -182,18 +187,19 @@ function parseTransactions(data, tezosAddress) {
         address,
         amount,
         count: addressTxCount.get(address),
-        dateRange: addressDateRange.get(address)
+        dateRange: addressDateRange.get(address),
+        txHashes: txHashesMap.get(address)
     })).filter(entry => entry.amount >= tezLimit);
     const outflows = [...outflowsMap.entries()].map(([address, amount]) => ({
         address,
         amount,
         count: addressTxCount.get(address),
-        dateRange: addressDateRange.get(address)
+        dateRange: addressDateRange.get(address),
+        txHashes: txHashesMap.get(address)
     })).filter(entry => entry.amount >= tezLimit);
 
-    return { inflows, outflows, addressToAliasMap };
+    return { inflows, outflows, addressToAliasMap, txHashesMap };
 }
-
 
 // Generate data, draw diagram, and manage history
 async function generateDataAndDrawDiagram(tezosAddress, limit) {
@@ -203,10 +209,10 @@ async function generateDataAndDrawDiagram(tezosAddress, limit) {
         return;
     }
     offset = 0;
-    const { inflows, outflows, addressToAliasMap } = parseTransactions(data, tezosAddress);
+    const { inflows, outflows, addressToAliasMap, txHashesMap } = parseTransactions(data, tezosAddress);
     hideLoaderAndDrawDiagram();
-    drawSankeyDiagram(tezosAddress, inflows, outflows, addressToAliasMap);
-    
+    drawSankeyDiagram(tezosAddress, inflows, outflows, addressToAliasMap, txHashesMap);
+
     if (historyIndex === -1 || history[historyIndex] !== tezosAddress) {
         updateHistory(tezosAddress);
     }
@@ -223,7 +229,7 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) {
+function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, txHashesMap) {
     const nodes = [
         {
             label: `${addressToAliasMap.get(targetAddress) || targetAddress}`,
@@ -290,18 +296,35 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) 
         if (event && event.points && event.points.length > 0) {
             const clickedNodeLabel = event.points[0].source.pointNumber !== 0 ? event.points[0].source.label : event.points[0].target.label;
             const relatedAddress = Array.from(addressToAliasMap).find(([address, alias]) => alias === clickedNodeLabel)?.[0] || clickedNodeLabel;
+			const txHashes = txHashesMap.get(clickedNodeLabel) || [];
+            const txHashesText = txHashes.map(hash => `https://tzkt.io/${hash}`).join('\n');
+            const clipboardText = `${relatedAddress}\n\n${txHashesText}`;
             document.getElementById('target-address').value = relatedAddress.trim();
-            navigator.clipboard.writeText(relatedAddress.trim()).then(function() {
-                console.log('Value copied to clipboard:', relatedAddress.trim());
+            navigator.clipboard.writeText(clipboardText).then(function() {
+                console.log(clipboardText);
             }).catch(function(err) {
                 console.error('Could not copy text:', err);
             });
+			showNotification();
             document.getElementById('confirm-button').click();
         }
     });
 }
 
+function showNotification() {
+    const notification = document.getElementById('notification');
+    notification.style.display = 'block';
+    setTimeout(() => {
+        notification.style.opacity = 1;
+    }, 10); // Short delay to trigger CSS transition
 
+    setTimeout(() => {
+        notification.style.opacity = 0;
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 500); // Wait for the fade-out transition to complete
+    }, 3000); // Show notification for 3 seconds
+}
 
 
 // Handle back button click to navigate to previous address
