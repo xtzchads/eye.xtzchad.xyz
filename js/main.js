@@ -257,6 +257,17 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) 
             document.getElementById('confirm-button').click();
         }
     });
+    sankeyContainer.on('plotly_clickannotation', function(event) {
+    if (event && event.points && event.points.length > 0) {
+        const point = event.points[0];
+        const clickedNodeLabel = point.text;
+        navigator.clipboard.writeText(clickedNodeLabel.trim()).then(function() {
+                console.log('Value copied to clipboard:', relatedAddress.trim());
+            }).catch(function(err) {
+                console.error('Could not copy text:', err);
+            });
+    }
+    });
 }
 
 // Handle back button click to navigate to previous address
