@@ -19,6 +19,23 @@ h1 {
     text-align: center;
 }
 
+#notification {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: black;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
 .button-container {
     display: flex;
     justify-content: space-around;
