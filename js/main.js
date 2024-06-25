@@ -115,6 +115,8 @@ function parseTransactions(data, tezosAddress) {
     const inflowsMap = new Map();
     const outflowsMap = new Map();
     const addressToAliasMap = new Map();
+    const addressTxCount = new Map();
+    const addressDateRange = new Map();
 
     if (!data || !Array.isArray(data)) {
         console.error('Invalid data format');
@@ -135,33 +137,63 @@ function parseTransactions(data, tezosAddress) {
         addressToAliasMap.set(operation.sender.address, senderAlias);
         addressToAliasMap.set(operation.target.address, targetAlias);
 
+        const timestamp = new Date(operation.timestamp);
+
         if (operation.sender && operation.target && operation.sender.address === tezosAddress && operation.amount !== "0") {
             const targetAddress = targetAlias;
             const amount = parseFloat(operation.amount / 1000000);
+
             if (outflowsMap.has(targetAddress)) {
                 outflowsMap.set(targetAddress, outflowsMap.get(targetAddress) + amount);
+                addressTxCount.set(targetAddress, addressTxCount.get(targetAddress) + 1);
+                const dateRange = addressDateRange.get(targetAddress);
+                addressDateRange.set(targetAddress, {
+                    start: new Date(timestamp),
+                    end: dateRange.end
+                });
             } else {
                 outflowsMap.set(targetAddress, amount);
+                addressTxCount.set(targetAddress, 1);
+                addressDateRange.set(targetAddress, { start: timestamp, end: timestamp });
             }
         }
         if (operation.target && operation.target.address === tezosAddress && operation.sender.address !== tezosAddress) {
             const senderAddress = senderAlias;
             const amount = parseFloat(operation.amount / 1000000);
+
             if (inflowsMap.has(senderAddress)) {
                 inflowsMap.set(senderAddress, inflowsMap.get(senderAddress) + amount);
+                addressTxCount.set(senderAddress, addressTxCount.get(senderAddress) + 1);
+                const dateRange = addressDateRange.get(senderAddress);
+                addressDateRange.set(senderAddress, {
+                    start: new Date(timestamp),
+                    end: dateRange.end
+                });
             } else {
                 inflowsMap.set(senderAddress, amount);
+                addressTxCount.set(senderAddress, 1);
+                addressDateRange.set(senderAddress, { start: timestamp, end: timestamp });
             }
         }
     });
 
     const tezLimit = document.getElementById('tez-limit').value;
-    const inflows = [...inflowsMap.entries()].map(([address, amount]) => ({ address, amount }))
-        .filter(entry => entry.amount >= tezLimit);
-    const outflows = [...outflowsMap.entries()].map(([address, amount]) => ({ address, amount }))
-        .filter(entry => entry.amount >= tezLimit);
+    const inflows = [...inflowsMap.entries()].map(([address, amount]) => ({
+        address,
+        amount,
+        count: addressTxCount.get(address),
+        dateRange: addressDateRange.get(address)
+    })).filter(entry => entry.amount >= tezLimit);
+    const outflows = [...outflowsMap.entries()].map(([address, amount]) => ({
+        address,
+        amount,
+        count: addressTxCount.get(address),
+        dateRange: addressDateRange.get(address)
+    })).filter(entry => entry.amount >= tezLimit);
+
     return { inflows, outflows, addressToAliasMap };
 }
+
 
 // Generate data, draw diagram, and manage history
 async function generateDataAndDrawDiagram(tezosAddress, limit) {
@@ -191,12 +223,20 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-// Draw the Sankey diagram using Plotly
 function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) {
     const nodes = [
-        { label: addressToAliasMap.get(targetAddress) || targetAddress },
-        ...inflows.map(entry => ({ label: entry.address })),
-        ...outflows.map(entry => ({ label: entry.address }))
+        {
+            label: `${addressToAliasMap.get(targetAddress) || targetAddress}`,
+            hoverText: `${addressToAliasMap.get(targetAddress) || targetAddress}`
+        },
+        ...inflows.map(entry => ({
+            label: `${entry.address}`,
+            hoverText: `${entry.address}<br>${entry.count} txes<br>${entry.dateRange.start.toISOString().split('T')[0]} - ${entry.dateRange.end.toISOString().split('T')[0]}`
+        })),
+        ...outflows.map(entry => ({
+            label: `${entry.address}`,
+            hoverText: `${entry.address}<br>${entry.count} txes<br>${entry.dateRange.start.toISOString().split('T')[0]} - ${entry.dateRange.end.toISOString().split('T')[0]}`
+        }))
     ];
 
     const links = [
@@ -224,7 +264,9 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) 
                 color: "black",
                 width: 0.5
             },
-            label: nodes.map(node => node.label)
+            label: nodes.map(node => node.label),
+            customdata: nodes.map(node => node.hoverText),
+            hovertemplate: '%{customdata}<extra></extra>'
         },
         link: {
             source: links.map(link => link.source),
@@ -258,6 +300,9 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap) 
         }
     });
 }
+
+
+
 
 // Handle back button click to navigate to previous address
 document.getElementById('back-button').addEventListener('click', function() {
