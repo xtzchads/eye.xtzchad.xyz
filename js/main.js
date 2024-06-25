@@ -67,9 +67,9 @@ async function fetchData(tezosAddress) {
     try {
         let str;
         if (offset === 0) {
-            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000`;
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&status=applied`;
         } else {
-            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&lastId=${offset}`;
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&status=applied&lastId=${offset}`;
         }
         const response = await fetch(str);
         if (!response.ok) {
