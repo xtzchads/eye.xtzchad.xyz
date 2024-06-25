@@ -286,7 +286,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
 
     Plotly.newPlot('sankey-diagram', [sankeyData], {
         margin: { t: 0, r: 0, b: 0, l: 0 },
-        width: window.innerWidth,
+        width: window.innerWidth*0.98,
         height: optimalHeight
     });
 
