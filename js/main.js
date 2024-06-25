@@ -137,7 +137,7 @@ function parseTransactions(data, tezosAddress) {
 
         if (operation.sender && operation.target && operation.sender.address === tezosAddress && operation.amount !== "0") {
             const targetAddress = targetAlias;
-            const amount = operation.amount / 1000000;
+            const amount = parseFloat(operation.amount / 1000000);
             if (outflowsMap.has(targetAddress)) {
                 outflowsMap.set(targetAddress, outflowsMap.get(targetAddress) + amount);
             } else {
@@ -146,7 +146,7 @@ function parseTransactions(data, tezosAddress) {
         }
         if (operation.target && operation.target.address === tezosAddress && operation.sender.address !== tezosAddress) {
             const senderAddress = senderAlias;
-            const amount = operation.amount / 1000000;
+            const amount = parseFloat(operation.amount / 1000000);
             if (inflowsMap.has(senderAddress)) {
                 inflowsMap.set(senderAddress, inflowsMap.get(senderAddress) + amount);
             } else {
