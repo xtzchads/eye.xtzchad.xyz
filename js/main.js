@@ -79,7 +79,6 @@ async function fetchData(tezosAddress) {
         offset = data[data.length - 1].id;
         return data;
     } catch (error) {
-        console.error('Error fetching data:', error);
         return null;
     }
 }
