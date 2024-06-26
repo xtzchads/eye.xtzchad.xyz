@@ -4,7 +4,7 @@ The Eye of Chad is a small web application that visualizes Tezos blockchain tran
 
 There are two sliders - transaction depth slider and a dust filter slider (for the case when there are too many inputs or outputs)
 
-To explore the connection, click anywhere on a green or red node. It will trigger a new search (or loads the data from cache if already searched) with new address in connection (address is also copied into clipboard for quicker work with it elsewhere). Tool can remember searches and move back and forward between them. Searches can be shared via url.
+To explore the connection, click anywhere on a green or red node. It will trigger a new search (or load the data from cache if already searched) with new address in connection (address is also copied into clipboard for quicker work with it elsewhere). Tool can remember searches and move back and forward between them. Searches can be shared via url.
 
 ## Directory Structure
 
