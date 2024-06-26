@@ -230,12 +230,14 @@ function hideLoader() {
 
 function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, txHashesMap) {
     const numInflows = inflows.length;
+    const amInflows = [...inflows.values()].reduce((sum, { amount = 0 }) => sum + amount, 0);
     const numOutflows = outflows.length;
-    console.log("in:"+numInflows+"; out:"+numOutflows)
+    const amOutflows = [...outflows.values()].reduce((sum, { amount = 0 }) => sum + amount, 0);
+    console.log("inputs:"+numInflows+"; outputs:"+numOutflows+"\r\nin:"+amInflows.toFixed(2)+"; out:"+amOutflows.toFixed(2))
     const nodes = [
         {
             label: `${addressToAliasMap.get(targetAddress) || targetAddress}`,
-            hoverText: `${addressToAliasMap.get(targetAddress) || targetAddress}<br>Inputs: ${numInflows}<br>Outputs: ${numOutflows}`
+            hoverText: `${addressToAliasMap.get(targetAddress) || targetAddress}<br>Inputs: ${numInflows}<br>Outputs: ${numOutflows}<br>Total in: ${amInflows.toFixed(2)} tez<br>Total out: ${amOutflows.toFixed(2)} tez`
         },
         ...inflows.map(entry => ({
             label: `${entry.address}`,
