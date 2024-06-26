@@ -67,9 +67,9 @@ async function fetchData(tezosAddress) {
     try {
         let str;
         if (offset === 0) {
-            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&status=applied`;
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction&limit=1000&status=applied`;
         } else {
-            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=transaction&limit=1000&status=applied&lastId=${offset}`;
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction&limit=1000&status=applied&lastId=${offset}`;
         }
         const response = await fetch(str);
         if (!response.ok) {
@@ -124,59 +124,70 @@ function parseTransactions(data, tezosAddress) {
     }
 
     data.forEach(operation => {
-        let senderAlias = operation.sender.address;
-        let targetAlias = operation.target.address;
+        let senderAlias = operation.sender?.address || '';
+        let targetAlias = operation.target?.address || '';
 
-        if (operation.sender.alias) {
+        if (operation.sender?.alias) {
             senderAlias = operation.sender.alias;
         }
-        if (operation.target.alias) {
+        if (operation.target?.alias) {
             targetAlias = operation.target.alias;
         }
 
-        addressToAliasMap.set(operation.sender.address, senderAlias);
-        addressToAliasMap.set(operation.target.address, targetAlias);
+        if (operation.type === 'activation') {
+            const address = "~Activation~";
+            const amount = parseFloat(operation.balance / 1000000);  // Use operation.balance instead of operation.account.balance
 
-        const timestamp = new Date(operation.timestamp);
+            inflowsMap.set(address, amount);
+            addressTxCount.set(address, 1);
+            const dateRange = { start: new Date(operation.timestamp), end: new Date(operation.timestamp) };
+            addressDateRange.set(address, dateRange);
+            txHashesMap.set(address, (txHashesMap.get(address) || []).concat(operation.hash));
+        } else {
+            addressToAliasMap.set(operation.sender.address, senderAlias);
+            addressToAliasMap.set(operation.target.address, targetAlias);
 
-        if (operation.sender && operation.target && operation.sender.address === tezosAddress && operation.amount !== "0") {
-            const targetAddress = targetAlias;
-            const amount = parseFloat(operation.amount / 1000000);
+            const timestamp = new Date(operation.timestamp);
 
-            if (outflowsMap.has(targetAddress)) {
-                outflowsMap.set(targetAddress, outflowsMap.get(targetAddress) + amount);
-                addressTxCount.set(targetAddress, addressTxCount.get(targetAddress) + 1);
-                const dateRange = addressDateRange.get(targetAddress);
-                addressDateRange.set(targetAddress, {
-                    start: new Date(timestamp),
-                    end: dateRange.end
-                });
-                txHashesMap.get(targetAddress).push(operation.hash);
-            } else {
-                outflowsMap.set(targetAddress, amount);
-                addressTxCount.set(targetAddress, 1);
-                addressDateRange.set(targetAddress, { start: timestamp, end: timestamp });
-                txHashesMap.set(targetAddress, [operation.hash]);
+            if (operation.sender && operation.target && operation.sender.address === tezosAddress && operation.amount !== "0") {
+                const targetAddress = targetAlias;
+                const amount = parseFloat(operation.amount / 1000000);
+
+                if (outflowsMap.has(targetAddress)) {
+                    outflowsMap.set(targetAddress, outflowsMap.get(targetAddress) + amount);
+                    addressTxCount.set(targetAddress, addressTxCount.get(targetAddress) + 1);
+                    const dateRange = addressDateRange.get(targetAddress);
+                    addressDateRange.set(targetAddress, {
+                        start: new Date(timestamp),
+                        end: dateRange.end
+                    });
+                    txHashesMap.get(targetAddress).push(operation.hash);
+                } else {
+                    outflowsMap.set(targetAddress, amount);
+                    addressTxCount.set(targetAddress, 1);
+                    addressDateRange.set(targetAddress, { start: timestamp, end: timestamp });
+                    txHashesMap.set(targetAddress, [operation.hash]);
+                }
             }
-        }
-        if (operation.target && operation.target.address === tezosAddress && operation.sender.address !== tezosAddress) {
-            const senderAddress = senderAlias;
-            const amount = parseFloat(operation.amount / 1000000);
+            if (operation.target && operation.target.address === tezosAddress && operation.sender.address !== tezosAddress) {
+                const senderAddress = senderAlias;
+                const amount = parseFloat(operation.amount / 1000000);
 
-            if (inflowsMap.has(senderAddress)) {
-                inflowsMap.set(senderAddress, inflowsMap.get(senderAddress) + amount);
-                addressTxCount.set(senderAddress, addressTxCount.get(senderAddress) + 1);
-                const dateRange = addressDateRange.get(senderAddress);
-                addressDateRange.set(senderAddress, {
-                    start: new Date(timestamp),
-                    end: dateRange.end
-                });
-                txHashesMap.get(senderAddress).push(operation.hash);
-            } else {
-                inflowsMap.set(senderAddress, amount);
-                addressTxCount.set(senderAddress, 1);
-                addressDateRange.set(senderAddress, { start: timestamp, end: timestamp });
-                txHashesMap.set(senderAddress, [operation.hash]);
+                if (inflowsMap.has(senderAddress)) {
+                    inflowsMap.set(senderAddress, inflowsMap.get(senderAddress) + amount);
+                    addressTxCount.set(senderAddress, addressTxCount.get(senderAddress) + 1);
+                    const dateRange = addressDateRange.get(senderAddress);
+                    addressDateRange.set(senderAddress, {
+                        start: new Date(timestamp),
+                        end: dateRange.end
+                    });
+                    txHashesMap.get(senderAddress).push(operation.hash);
+                } else {
+                    inflowsMap.set(senderAddress, amount);
+                    addressTxCount.set(senderAddress, 1);
+                    addressDateRange.set(senderAddress, { start: timestamp, end: timestamp });
+                    txHashesMap.set(senderAddress, [operation.hash]);
+                }
             }
         }
     });
@@ -230,9 +241,9 @@ function hideLoader() {
 
 function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, txHashesMap) {
     const numInflows = inflows.length;
-    const amInflows = [...inflows.values()].reduce((sum, { amount = 0 }) => sum + amount, 0);
+	const amInflows = [...inflows.values()].reduce((sum, { amount = 0 }) => sum + amount, 0);
     const numOutflows = outflows.length;
-    const amOutflows = [...outflows.values()].reduce((sum, { amount = 0 }) => sum + amount, 0);
+	const amOutflows = [...outflows.values()].reduce((sum, { amount = 0 }) => sum + amount, 0);
     console.log("inputs:"+numInflows+"; outputs:"+numOutflows+"\r\nin:"+amInflows.toFixed(2)+"; out:"+amOutflows.toFixed(2))
     const nodes = [
         {
@@ -254,7 +265,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
             source: nodes.findIndex(node => node.label === entry.address),
             target: 0,
             value: entry.amount,
-            color: 'rgba(144, 238, 144, 0.6)'
+            color: entry.address === "~Activation~" ? 'rgba(255, 255, 153, 0.6)' : 'rgba(144, 238, 144, 0.6)' // Light yellow for activation
         })),
         ...outflows.map(entry => ({
             source: 0,
@@ -311,6 +322,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
                 console.error('Could not copy text:', err);
             });
 			showNotification();
+			if (relatedAddress!=="~Activation~")
             document.getElementById('confirm-button').click();
         }
     });
