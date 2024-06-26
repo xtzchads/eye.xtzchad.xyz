@@ -17,6 +17,7 @@ To explore the particular connection, click anywhere on a green or red node. It 
  - URL sharing (share your searches with friends just by giving them url of your search)
  - Save your searches as PNG using Plotly built-in functionality
  - Mobile friendly, but best to use on big screens due potentially large amounts of data
+ - Super easy to deploy. Just fork the repo and publish it as your own Github Pages site.
 
 ## Directory Structure
 
