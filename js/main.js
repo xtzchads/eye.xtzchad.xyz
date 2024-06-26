@@ -282,10 +282,10 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
         }
     };
 
-    const optimalHeight = Math.max(600, nodes.length * 15);
+    const optimalHeight = Math.max(600, nodes.length * 18);
 
         Plotly.newPlot('sankey-diagram', [sankeyData], {
-        margin: { t: 0, r: 0, b: 0, l: 0 },
+        margin: { t: 30, r: 10, b: 10, l: 10 },
         
 	autosize: true,
         height: optimalHeight
