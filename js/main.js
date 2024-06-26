@@ -290,7 +290,8 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
         margin: { t: 30, r: 10, b: 10, l: 10 },
         
 	autosize: true,
-        height: optimalHeight
+        height: optimalHeight,
+	hovermode:'closest'
     },{ responsive: true });
 
     // Handle node click in the Sankey diagram
