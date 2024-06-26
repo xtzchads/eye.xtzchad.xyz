@@ -1,11 +1,161 @@
-!function(a){var b="object"==typeof self&&self.self===self&&self||"object"==typeof global&&global.global===global&&global;"function"==typeof define&&define.amd?define(["exports"],function(c){b.ParticleNetwork=a(b,c)}):"object"==typeof module&&module.exports?module.exports=a(b,{}):b.ParticleNetwork=a(b,{})}(function(a,b){var c=function(a){this.canvas=a.canvas,this.g=a.g,this.particleColor=a.options.particleColor,this.x=Math.random()*this.canvas.width,this.y=Math.random()*this.canvas.height,this.velocity={x:(Math.random()-.5)*a.options.velocity,y:(Math.random()-.5)*a.options.velocity}};return c.prototype.update=function(){(this.x>this.canvas.width+20||this.x<-20)&&(this.velocity.x=-this.velocity.x),(this.y>this.canvas.height+20||this.y<-20)&&(this.velocity.y=-this.velocity.y),this.x+=this.velocity.x,this.y+=this.velocity.y},c.prototype.h=function(){this.g.beginPath(),this.g.fillStyle=this.particleColor,this.g.globalAlpha=.7,this.g.arc(this.x,this.y,1.5,0,2*Math.PI),this.g.fill()},b=function(a,b){this.i=a,this.i.size={width:this.i.offsetWidth,height:this.i.offsetHeight-1},b=void 0!==b?b:{},this.options={particleColor:void 0!==b.particleColor?b.particleColor:"#fff",background:void 0!==b.background?b.background:"#1a252f",interactive:void 0!==b.interactive?b.interactive:!0,velocity:this.setVelocity(b.speed),density:this.j(b.density)},this.init()},b.prototype.init=function(){if(this.k=document.createElement("div"),this.i.appendChild(this.k),this.l(this.k,{position:"absolute",top:0,left:0,bottom:0,right:0}),/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(this.options.background))this.l(this.k,{background:this.options.background});else{if(!/\.(gif|jpg|jpeg|tiff|png)$/i.test(this.options.background))return console.error("Please specify a valid background image or hexadecimal color"),!1;this.l(this.k,{background:'url("'+this.options.background+'") no-repeat center',"background-size":"cover"})}if(!/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(this.options.particleColor))return console.error("Please specify a valid particleColor hexadecimal color"),!1;this.canvas=document.createElement("canvas"),this.i.appendChild(this.canvas),this.g=this.canvas.getContext("2d"),this.canvas.width=this.i.size.width,this.canvas.height=this.i.size.height,this.l(this.i,{position:"absolute"}),this.l(this.canvas,{position:"absolute"}),window.addEventListener("resize",function(){return this.i.offsetWidth===this.i.size.width&&this.i.offsetHeight===this.i.size.height?!1:(this.canvas.width=this.i.size.width=this.i.offsetWidth,this.canvas.height=this.i.size.height=this.i.offsetHeight,clearTimeout(this.m),void(this.m=setTimeout(function(){this.o=[];for(var a=0;a<this.canvas.width*this.canvas.height/this.options.density;a++)this.o.push(new c(this));this.options.interactive&&this.o.push(this.p),requestAnimationFrame(this.update.bind(this))}.bind(this),500)))}.bind(this)),this.o=[];for(var a=0;a<this.canvas.width*this.canvas.height/this.options.density;a++)this.o.push(new c(this));this.options.interactive&&(this.p=new c(this),this.p.velocity={x:0,y:0},this.o.push(this.p),this.canvas.addEventListener("mousemove",function(a){this.p.x=a.clientX-this.canvas.offsetLeft,this.p.y=a.clientY-this.canvas.offsetTop}.bind(this)),this.canvas.addEventListener("mouseup",function(a){this.p.velocity={x:(Math.random()-.5)*this.options.velocity,y:(Math.random()-.5)*this.options.velocity},this.p=new c(this),this.p.velocity={x:0,y:0},this.o.push(this.p)}.bind(this))),requestAnimationFrame(this.update.bind(this))},b.prototype.update=function(){this.g.clearRect(0,0,this.canvas.width,this.canvas.height),this.g.globalAlpha=1;for(var a=0;a<this.o.length;a++){this.o[a].update(),this.o[a].h();for(var b=this.o.length-1;b>a;b--){var c=Math.sqrt(Math.pow(this.o[a].x-this.o[b].x,2)+Math.pow(this.o[a].y-this.o[b].y,2));c>120||(this.g.beginPath(),this.g.strokeStyle=this.options.particleColor,this.g.globalAlpha=(120-c)/120,this.g.lineWidth=.7,this.g.moveTo(this.o[a].x,this.o[a].y),this.g.lineTo(this.o[b].x,this.o[b].y),this.g.stroke())}}0!==this.options.velocity&&requestAnimationFrame(this.update.bind(this))},b.prototype.setVelocity=function(a){return"fast"===a?1:"slow"===a?.33:"none"===a?0:.66},b.prototype.j=function(a){return"high"===a?5e3:"low"===a?2e4:isNaN(parseInt(a,10))?1e4:a},b.prototype.l=function(a,b){for(var c in b)a.style[c]=b[c]},b});
-document.addEventListener('DOMContentLoaded', function() {
-var canvasDiv = document.getElementById('particle-canvas');
-var options = {
-  particleColor: '#888',
-  interactive: true,
-  speed: 'low',
-  density: 'low'
-};
-var particleCanvas = new ParticleNetwork(canvasDiv, options);
+!(function (a) {
+    var b = ("object" == typeof self && self.self === self && self) || ("object" == typeof global && global.global === global && global);
+    "function" == typeof define && define.amd
+        ? define(["exports"], function (c) {
+              b.ParticleNetwork = a(b, c);
+          })
+        : "object" == typeof module && module.exports
+        ? (module.exports = a(b, {}))
+        : (b.ParticleNetwork = a(b, {}));
+})(function (a, b) {
+    var c = function (a) {
+        this.canvas = a.canvas;
+        this.g = a.g;
+        this.particleColor = a.options.particleColor;
+        this.x = Math.random() * this.canvas.width;
+        this.y = Math.random() * this.canvas.height;
+        this.velocity = {
+            x: (Math.random() - 0.5) * a.options.velocity,
+            y: (Math.random() - 0.5) * a.options.velocity
+        };
+    };
+    
+    c.prototype.update = function () {
+        if (this.x > this.canvas.width + 20 || this.x < -20) this.velocity.x = -this.velocity.x;
+        if (this.y > this.canvas.height + 20 || this.y < -20) this.velocity.y = -this.velocity.y;
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+    };
+    
+    c.prototype.draw = function () {
+        this.g.beginPath();
+        this.g.fillStyle = this.particleColor;
+        this.g.globalAlpha = 0.7;
+        this.g.arc(this.x, this.y, 1.5, 0, 2 * Math.PI);
+        this.g.fill();
+    };
+    
+    var ParticleNetwork = function (a, b) {
+        this.element = a;
+        this.size = { width: this.element.offsetWidth, height: this.element.offsetHeight - 1 };
+        b = b || {};
+        this.options = {
+            particleColor: b.particleColor || "#fff",
+            background: b.background || "#1a252f",
+            interactive: b.interactive !== undefined ? b.interactive : true,
+            velocity: this.setVelocity(b.speed),
+            density: this.setDensity(b.density)
+        };
+        this.init();
+    };
+    
+    ParticleNetwork.prototype.init = function () {
+        this.createBackground();
+        this.createCanvas();
+        this.bindEvents();
+        this.createParticles();
+        requestAnimationFrame(this.update.bind(this));
+    };
+    
+    ParticleNetwork.prototype.createBackground = function () {
+        this.bgDiv = document.createElement("div");
+        this.element.appendChild(this.bgDiv);
+        this.setStyle(this.bgDiv, { position: "absolute", top: 0, left: 0, bottom: 0, right: 0 });
+        this.setStyle(this.bgDiv, { background: this.options.background });
+    };
+    
+    ParticleNetwork.prototype.createCanvas = function () {
+        this.canvas = document.createElement("canvas");
+        this.element.appendChild(this.canvas);
+        this.g = this.canvas.getContext("2d");
+        this.canvas.width = this.size.width;
+        this.canvas.height = this.size.height;
+        this.setStyle(this.element, { position: "absolute" });
+        this.setStyle(this.canvas, { position: "absolute" });
+    };
+    
+    ParticleNetwork.prototype.bindEvents = function () {
+        if (this.options.interactive) {
+            this.canvas.addEventListener("mousemove", this.onMouseMove.bind(this));
+        }
+        window.addEventListener("resize", this.onResize.bind(this));
+    };
+    
+    ParticleNetwork.prototype.createParticles = function () {
+        this.particles = [];
+        for (var i = 0; i < (this.canvas.width * this.canvas.height) / this.options.density; i++) {
+            this.particles.push(new c(this));
+        }
+        if (this.options.interactive) {
+            this.interactiveParticle = new c(this);
+            this.interactiveParticle.velocity = { x: 0, y: 0 };
+            this.particles.push(this.interactiveParticle);
+        }
+    };
+    
+    ParticleNetwork.prototype.onMouseMove = function (e) {
+        this.interactiveParticle.x = e.clientX - this.canvas.offsetLeft;
+        this.interactiveParticle.y = e.clientY - this.canvas.offsetTop;
+    };
+    
+    ParticleNetwork.prototype.onResize = function () {
+        clearTimeout(this.resizeTimeout);
+        this.resizeTimeout = setTimeout(function () {
+            this.canvas.width = this.size.width = this.element.offsetWidth;
+            this.canvas.height = this.size.height = this.element.offsetHeight-1;
+            this.createParticles();
+            requestAnimationFrame(this.update.bind(this));
+        }.bind(this), 500);
+    };
+    
+    ParticleNetwork.prototype.update = function () {
+        this.g.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.g.globalAlpha = 1;
+        this.particles.forEach(function (particle, index) {
+            particle.update();
+            particle.draw();
+            for (var j = index + 1; j < this.particles.length; j++) {
+                var otherParticle = this.particles[j];
+                var dist = Math.hypot(particle.x - otherParticle.x, particle.y - otherParticle.y);
+                if (dist <= 120) {
+                    this.g.beginPath();
+                    this.g.strokeStyle = this.options.particleColor;
+                    this.g.globalAlpha = (120 - dist) / 120;
+                    this.g.lineWidth = 0.7;
+                    this.g.moveTo(particle.x, particle.y);
+                    this.g.lineTo(otherParticle.x, otherParticle.y);
+                    this.g.stroke();
+                }
+            }
+        }.bind(this));
+        
+        if (this.options.velocity !== 0) {
+            requestAnimationFrame(this.update.bind(this));
+        }
+    };
+    
+    ParticleNetwork.prototype.setVelocity = function (speed) {
+        return speed === "fast" ? 1 : speed === "slow" ? 0.33 : speed === "none" ? 0 : 0.66;
+    };
+    
+    ParticleNetwork.prototype.setDensity = function (density) {
+        return density === "high" ? 5000 : density === "low" ? 20000 : isNaN(parseInt(density, 10)) ? 10000 : density;
+    };
+    
+    ParticleNetwork.prototype.setStyle = function (element, styles) {
+        Object.assign(element.style, styles);
+    };
+    
+    return ParticleNetwork;
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    var canvasDiv = document.getElementById("particle-canvas");
+    var options = {
+        particleColor: "#888",
+        interactive: true,
+        speed: "low",
+        density: "low",
+    };
+    new ParticleNetwork(canvasDiv, options);
 });
