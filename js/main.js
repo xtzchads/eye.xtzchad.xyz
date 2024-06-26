@@ -203,7 +203,7 @@ function parseTransactions(data, tezosAddress) {
 // Generate data, draw diagram, and manage history
 async function generateDataAndDrawDiagram(tezosAddress, limit) {
     const data = await fetchAllData(tezosAddress, limit);
-    if (!data) {
+    if (!data || data.length==0) {
         hideLoader();
         return;
     }
