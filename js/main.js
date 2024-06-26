@@ -232,6 +232,7 @@ function hideLoader() {
 function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, txHashesMap) {
     const numInflows = inflows.length;
     const numOutflows = outflows.length;
+    console.log("in:"+numInflows+"; out:"+numOutflows)
     const nodes = [
         {
             label: `${addressToAliasMap.get(targetAddress) || targetAddress}`,
@@ -290,8 +291,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
         margin: { t: 30, r: 10, b: 10, l: 10 },
         
 	autosize: true,
-        height: optimalHeight,
-	hovermode:'closest'
+        height: optimalHeight
     },{ responsive: true });
 
     // Handle node click in the Sankey diagram
