@@ -8,10 +8,12 @@ To explore the connection, click anywhere on a green or red node. It will trigge
 
 ## Directory Structure
 
-- `index.html` : Main HTML file.
-- `css/main.css` : Main CSS file.
-- `js/main.js` : Main JS file.
-- `icons/` : Directory containing the icon images.
+- `index.html` : Main HTML file
+- `css/main.css` : Main CSS file
+- `js/main.js` : Main JS file
+- `js/background.js` : Animated background
+- `js/plotly.min.js` : Plotly charting library
+- `icons/` : Directory containing the icon images
 
 ## Questions & Answers
 How to copy address/transactions?
