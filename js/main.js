@@ -284,11 +284,12 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
 
     const optimalHeight = Math.max(600, nodes.length * 15);
 
-    Plotly.newPlot('sankey-diagram', [sankeyData], {
+        Plotly.newPlot('sankey-diagram', [sankeyData], {
         margin: { t: 0, r: 0, b: 0, l: 0 },
-        width: window.innerWidth*0.98,
+        
+	autosize: true,
         height: optimalHeight
-    });
+    },{ responsive: true });
 
     // Handle node click in the Sankey diagram
     const sankeyContainer = document.getElementById('sankey-diagram');
