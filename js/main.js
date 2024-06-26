@@ -292,7 +292,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
         
 	autosize: true,
         height: optimalHeight
-    },{ responsive: true });
+    },{ responsive: true,suppressWarnings: true});
 
     // Handle node click in the Sankey diagram
     const sankeyContainer = document.getElementById('sankey-diagram');
