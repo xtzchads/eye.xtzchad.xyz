@@ -2,9 +2,21 @@
 
 The Eye of Chad is a small web application that visualizes Tezos blockchain transaction flows with non-zero amounts of tez.
 
-There are two sliders - transaction depth slider and a dust filter slider (for the case when there are too many inputs or outputs)
+## How to use
+There are two sliders - transaction depth slider and a dust filter slider (for the case when there are too many dust inputs or outputs)
+To start, set the parameters (default are 1000 tx depth and no filtering by amount), input the address and cick the eye (or just hit enter key). This will draw a diagram visualizing tez flow in and out of address.
 
-To explore the connection, click anywhere on a green or red node. It will trigger a new search (or load the data from cache if already searched) with new address in connection (address is also copied into clipboard for quicker work with it elsewhere). Tool can remember searches and move back and forward between them. Searches can be shared via url.
+To explore the particular connection, click anywhere on a green or red node. It will trigger a new search (or load the data from cache if already searched) with new address in connection (address and all related transactions are also copied into clipboard for quicker work with it elsewhere). Tool can remember searches and move back and forward between them. Searches can be shared via url.
+
+## Features
+ - No need of backend, purely clientside app (awesome, isn't it?)
+ - Visualization of tez flow using sankey diagrams (inflows, outflows, dates, tx count, inputs/outputs count on mouse hover).
+ - Caching of searches inside of single session so you don't need to wait for a data load when you visit same connection multiple times
+ - Back/forward navigation between searches inside of single session so you won't lose your previous/current searches
+ - Automatic copying of all necessary data to clipboard once you click a connection (address, transactions in descending order from most fresh ones as tzkt links)
+ - URL sharing (share your searches with friends just by giving them url of your search)
+ - Save your searches as PNG using Plotly built-in functionality
+ - Mobile friendly, but best to use on big screens due potentially large amounts of data
 
 ## Directory Structure
 
