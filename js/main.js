@@ -235,7 +235,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
     const nodes = [
         {
             label: `${addressToAliasMap.get(targetAddress) || targetAddress}`,
-            hoverText: `${addressToAliasMap.get(targetAddress) || targetAddress}<br>Inputs: ${numInflows} addresses<br>Outputs: ${numOutflows}`
+            hoverText: `${addressToAliasMap.get(targetAddress) || targetAddress}<br>Inputs: ${numInflows}<br>Outputs: ${numOutflows}`
         },
         ...inflows.map(entry => ({
             label: `${entry.address}`,
