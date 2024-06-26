@@ -4,6 +4,6 @@ var options = {
   particleColor: '#888',
   interactive: true,
   speed: 'medium',
-  density: 'high'
+  density: 'medium'
 };
 var particleCanvas = new ParticleNetwork(canvasDiv, options);
