@@ -230,10 +230,12 @@ function hideLoader() {
 }
 
 function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, txHashesMap) {
+    const numInflows = inflows.length;
+    const numOutflows = outflows.length;
     const nodes = [
         {
             label: `${addressToAliasMap.get(targetAddress) || targetAddress}`,
-            hoverText: `${addressToAliasMap.get(targetAddress) || targetAddress}`
+            hoverText: `${addressToAliasMap.get(targetAddress) || targetAddress}<br>Inputs: ${numInflows} addresses<br>Outputs: ${numOutflows}`
         },
         ...inflows.map(entry => ({
             label: `${entry.address}`,
