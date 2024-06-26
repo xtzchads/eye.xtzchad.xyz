@@ -321,9 +321,12 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
             }).catch(function(err) {
                 console.error('Could not copy text:', err);
             });
-			showNotification();
-			if (relatedAddress!=="~Activation~")
+	    showNotification();
+	    if (relatedAddress!=="~Activation~")
+	    {
+	    document.getElementById('target-address').value = relatedAddress.trim();
             document.getElementById('confirm-button').click();
+	    }
         }
     });
 }
