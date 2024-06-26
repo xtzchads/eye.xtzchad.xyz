@@ -315,7 +315,6 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
 			const txHashes = txHashesMap.get(clickedNodeLabel) || [];
             const txHashesText = txHashes.map(hash => `https://tzkt.io/${hash}`).join('\n');
             const clipboardText = `${relatedAddress}\n\n${txHashesText}`;
-            document.getElementById('target-address').value = relatedAddress.trim();
             navigator.clipboard.writeText(clipboardText).then(function() {
                 console.log(clipboardText);
             }).catch(function(err) {
