@@ -16,10 +16,13 @@ To explore the connection, click anywhere on a green or red node. It will trigge
 ## Questions & Answers
 How to copy address/transactions?
 - Just click on connection area. Address and all transactions will get copied into clipboard and also printed into browser console automatically
+
 Can I select text in chart area?
 - No, it's a limitation of charting library. However we tried to build it in the way that you don't have to. Click on connection copies all needed info and you can instantly return back via Back button
+
 What tx range slider does?
 - It's a transaction depth. If you choose 10000, latest 10000 transactions will be analyzed.
+
 What tez slider does?
 - It hides the connections with amount less than specified with slider. Useful to filter dust connections and free some chart space or targeting specific ammounts of tez flows
 
