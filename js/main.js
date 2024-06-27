@@ -67,9 +67,9 @@ async function fetchData(tezosAddress) {
     try {
         let str;
         if (offset === 0) {
-            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction,origination&limit=1000&status=applied`;
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction&limit=1000&status=applied`;
         } else {
-            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction,origination&limit=1000&status=applied&lastId=${offset}`;
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction&limit=1000&status=applied&lastId=${offset}`;
         }
         const response = await fetch(str);
         if (!response.ok) {
@@ -146,7 +146,7 @@ function parseTransactions(data, tezosAddress) {
             const dateRange = { start: new Date(operation.timestamp), end: new Date(operation.timestamp) };
             addressDateRange.set(address, dateRange);
             txHashesMap.set(address, (txHashesMap.get(address) || []).concat(operation.hash));
-        } else if (operation.type === 'origination') {
+        } else /*if (operation.type === 'origination') {
             const timestamp = new Date(operation.timestamp);
             if (operation.contractBalance > 0)
                 if (operation.sender.address === tezosAddress) {
@@ -201,7 +201,7 @@ function parseTransactions(data, tezosAddress) {
                         txHashesMap.set(senderAddress, [operation.hash]);
                     }
                 }
-        } else {
+        } else*/ {
             addressToAliasMap.set(operation.sender.address, senderAlias);
             addressToAliasMap.set(operation.target.address, targetAlias);
 
