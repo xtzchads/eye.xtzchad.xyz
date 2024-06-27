@@ -67,9 +67,9 @@ async function fetchData(tezosAddress) {
     try {
         let str;
         if (offset === 0) {
-            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction&limit=1000&status=applied`;
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction,origination&limit=1000&status=applied`;
         } else {
-            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction&limit=1000&status=applied&lastId=${offset}`;
+            str = `https://api.tzkt.io/v1/accounts/${tezosAddress}/operations?sort.desc=level&type=activation,transaction,origination&limit=1000&status=applied&lastId=${offset}`;
         }
         const response = await fetch(str);
         if (!response.ok) {
@@ -135,15 +135,76 @@ function parseTransactions(data, tezosAddress) {
         }
 
         if (operation.type === 'activation') {
+			if (operation.account?.alias) {
+            targetAlias = operation.account.alias;
+			}
+			addressToAliasMap.set(operation.account.address, targetAlias);
             const address = "~Activation~";
             const amount = parseFloat(operation.balance / 1000000);  // Use operation.balance instead of operation.account.balance
-
             inflowsMap.set(address, amount);
             addressTxCount.set(address, 1);
             const dateRange = { start: new Date(operation.timestamp), end: new Date(operation.timestamp) };
             addressDateRange.set(address, dateRange);
             txHashesMap.set(address, (txHashesMap.get(address) || []).concat(operation.hash));
-        } else {
+        } else if (operation.type === 'origination')
+		{
+			const timestamp = new Date(operation.timestamp);
+			if (operation.contractBalance>0) 
+			if (operation.sender.address === tezosAddress)
+			{
+				if (operation.originatedContract?.alias) {
+				targetAlias = operation.originatedContract.alias;
+				}
+				else
+					targetAlias = operation.originatedContract.address;
+				addressToAliasMap.set(operation.sender.address, senderAlias);
+				addressToAliasMap.set(operation.originatedContract.address, targetAlias);
+                const targetAddress = targetAlias;
+                const amount = parseFloat(operation.contractBalance / 1000000);
+                if (outflowsMap.has(targetAddress)) {
+                    outflowsMap.set(targetAddress, outflowsMap.get(targetAddress) + amount);
+                    addressTxCount.set(targetAddress, addressTxCount.get(targetAddress) + 1);
+                    const dateRange = addressDateRange.get(targetAddress);
+                    addressDateRange.set(targetAddress, {
+                        start: new Date(timestamp),
+                        end: dateRange.end
+                    });
+                    txHashesMap.get(targetAddress).push(operation.hash);
+                } else {
+                    outflowsMap.set(targetAddress, amount);
+                    addressTxCount.set(targetAddress, 1);
+                    addressDateRange.set(targetAddress, { start: timestamp, end: timestamp });
+                    txHashesMap.set(targetAddress, [operation.hash]);
+                }
+            }
+			else
+			{
+				if (operation.originatedContract?.alias) {
+				targetAlias = operation.originatedContract.alias;
+				}
+				else
+					targetAlias = operation.originatedContract.address;
+				addressToAliasMap.set(operation.sender.address, senderAlias);
+				addressToAliasMap.set(operation.originatedContract.address, targetAlias);
+                const senderAddress = senderAlias;
+                const amount = parseFloat(operation.contractBalance / 1000000);
+                if (inflowsMap.has(senderAddress)) {
+                    inflowsMap.set(senderAddress, inflowsMap.get(senderAddress) + amount);
+                    addressTxCount.set(senderAddress, addressTxCount.get(senderAddress) + 1);
+                    const dateRange = addressDateRange.get(senderAddress);
+                    addressDateRange.set(senderAddress, {
+                        start: new Date(timestamp),
+                        end: dateRange.end
+                    });
+                    txHashesMap.get(senderAddress).push(operation.hash);
+                } else {
+                    inflowsMap.set(senderAddress, amount);
+                    addressTxCount.set(senderAddress, 1);
+                    addressDateRange.set(senderAddress, { start: timestamp, end: timestamp });
+                    txHashesMap.set(senderAddress, [operation.hash]);
+                }
+			}
+		} else {
             addressToAliasMap.set(operation.sender.address, senderAlias);
             addressToAliasMap.set(operation.target.address, targetAlias);
 
