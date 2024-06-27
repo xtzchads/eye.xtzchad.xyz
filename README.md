@@ -11,13 +11,14 @@ To explore the particular connection, click anywhere on a green or red node. It 
 ## Features
  - No need of backend, purely clientside app (awesome, isn't it?)
  - Visualization of tez flow using sankey diagrams (inflows, outflows, dates, tx count, inputs/outputs count on mouse hover).
+ - Support of transaction, activation, origination types
  - Caching of searches inside of single session so you don't need to wait for a data load when you visit same connection multiple times
  - Back/forward navigation between searches inside of single session so you won't lose your previous/current searches
  - Automatic copying of all necessary data to clipboard once you click a connection (address, transactions in descending order from most fresh ones as tzkt links)
  - URL sharing (share your searches with friends just by giving them url of your search)
  - Save your searches as PNG using Plotly built-in functionality
  - Mobile friendly, but best to use on big screens due potentially large amounts of data
- - Super easy to deploy. Just fork the repo and publish it as your own Github Pages site.
+ - Super easy to deploy. Just fork the repo and publish it as your own Github Pages site
 
 ## Directory Structure
 
@@ -40,6 +41,9 @@ What tx range slider does?
 
 What tez slider does?
 - It hides the connections with amount less than specified with slider. Useful to filter dust connections and free some chart space or targeting specific ammounts of tez flows
+
+## TODO
+Add support of protocol-based operation types (baking, staking, subsidy) and think how to not mess things up with it (speed, performance) because of additional large amount of transactions to analyze
 
 # License
 This project is open-source and available under the MIT License.
