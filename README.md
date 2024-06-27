@@ -42,8 +42,5 @@ What tx range slider does?
 What tez slider does?
 - It hides the connections with amount less than specified with slider. Useful to filter dust connections and free some chart space or targeting specific ammounts of tez flows
 
-## TODO
-Add support of protocol-based operation types (baking, staking, subsidy) and think how to not mess things up with it (speed, performance) because of additional large amount of transactions to analyze
-
-# License
+## License
 This project is open-source and available under the MIT License.
