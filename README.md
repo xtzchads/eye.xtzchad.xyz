@@ -11,7 +11,6 @@ To explore the particular connection, click anywhere on a green or red node. It 
 ## Features
  - No need of backend, purely clientside app (awesome, isn't it?)
  - Visualization of tez flow using sankey diagrams (inflows, outflows, dates, tx count, inputs/outputs count on mouse hover).
- - Support of transaction, activation, origination types
  - Caching of searches inside of single session so you don't need to wait for a data load when you visit same connection multiple times
  - Back/forward navigation between searches inside of single session so you won't lose your previous/current searches
  - Automatic copying of all necessary data to clipboard once you click a connection (address, transactions in descending order from most fresh ones as tzkt links)
