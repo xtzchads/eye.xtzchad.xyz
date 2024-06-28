@@ -98,17 +98,18 @@ h1 {
     width: 100%;
     max-width: 150px;
     border: none;
-    background: none;
+    background-color: transparent;
+    border-radius:5px;
     cursor: pointer;
 }
 
 #confirm-button:hover {
     background-color: rgba(0, 0, 0, 0.1);
 }
-#forward-button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-#back-button:hover {
+
+.nav-button {
+    background-color: transparent;
+    border-radius:5px;
     background-color: rgba(0, 0, 0, 0.1);
 }
 
