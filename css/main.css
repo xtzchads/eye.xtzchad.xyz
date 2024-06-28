@@ -49,8 +49,13 @@ h1 {
     width: 36px;
     height: 24px;
     border: none;
-    background: none;
+    background-color: transparent;
+    border-radius: 5px;
     cursor: pointer;
+}
+
+.button-container button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .button-container button img {
@@ -101,16 +106,6 @@ h1 {
     background-color: transparent;
     border-radius:5px;
     cursor: pointer;
-}
-
-#confirm-button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.nav-button {
-    background-color: transparent;
-    border-radius:5px;
-    background-color: rgba(0, 0, 0, 0.1);
 }
 
 #confirm-button img {
