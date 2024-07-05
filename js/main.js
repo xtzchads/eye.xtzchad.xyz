@@ -152,7 +152,7 @@ function parseTransactions(data, tezosAddress) {
             }
             addressToAliasMap.set(operation.account.address, targetAlias);
             const address = "~Bootstrap~";
-            const amount = parseFloat(operation.balance / 1000000);  // Use operation.balance instead of operation.account.balance
+            const amount = parseFloat(operation.balanceChange / 1000000);  // Use operation.balance instead of operation.account.balance
             inflowsMap.set(address, amount);
             addressTxCount.set(address, 1);
             const dateRange = { start: new Date(operation.timestamp), end: new Date(operation.timestamp) };
@@ -214,7 +214,7 @@ function parseTransactions(data, tezosAddress) {
                         txHashesMap.set(senderAddress, [operation.hash]);
                     }
                 }
-        } else {
+        } else if (operation.type === 'transaction'){
             addressToAliasMap.set(operation.sender.address, senderAlias);
             addressToAliasMap.set(operation.target.address, targetAlias);
 
