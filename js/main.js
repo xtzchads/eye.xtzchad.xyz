@@ -348,7 +348,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
             source: nodes.findIndex(node => node.label === entry.address),
             target: 0,
             value: entry.amount,
-            color: (entry.address === "~Activation~" || entry.address === "~Bootstrap~") ? 'rgba(255, 255, 153, 0.6)' : 'rgba(144, 238, 144, 0.6)' // Light yellow for activation
+            color: (entry.address === "~Activation~" || entry.address === "~Bootstrap~" || entry.address === "~Subsidy~") ? 'rgba(255, 255, 153, 0.6)' : 'rgba(144, 238, 144, 0.6)' // Light yellow for activation
         })),
         ...outflows.map(entry => ({
             source: 0,
@@ -404,7 +404,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
                 console.error('Could not copy text:', err);
             });
             showNotification();
-            if (relatedAddress !== "~Activation~" && relatedAddress !== "~Bootstrap~") {
+            if (relatedAddress !== "~Activation~" && relatedAddress !== "~Bootstrap~" && relatedAddress !== "~Subsidy~") {
                 document.getElementById('target-address').value = relatedAddress.trim();
                 document.getElementById('confirm-button').click();
             }
