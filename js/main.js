@@ -158,6 +158,18 @@ function parseTransactions(data, tezosAddress) {
             const dateRange = { start: new Date(operation.timestamp), end: new Date(operation.timestamp) };
             addressDateRange.set(address, dateRange);
             txHashesMap.set(address, (txHashesMap.get(address) || []).concat(operation.hash));
+	} else if (operation.type === 'migration' && operation.kind === 'subsidy') {
+            if (operation.account?.alias) {
+                targetAlias = operation.account.alias;
+            }
+            addressToAliasMap.set(operation.account.address, targetAlias);
+            const address = "~Subsidy~";
+            const amount = parseFloat(operation.balanceChange / 1000000);  // Use operation.balance instead of operation.account.balance
+            inflowsMap.set(address, amount);
+            addressTxCount.set(address, 1);
+            const dateRange = { start: new Date(operation.timestamp), end: new Date(operation.timestamp) };
+            addressDateRange.set(address, dateRange);
+            txHashesMap.set(address, (txHashesMap.get(address) || []).concat(operation.hash));
         } else if (operation.type === 'origination') {
             const timestamp = new Date(operation.timestamp);
             if (operation.contractBalance > 0)
