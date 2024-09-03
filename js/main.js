@@ -166,7 +166,7 @@ function parseTransactions(data, tezosAddress) {
             const address = "~Subsidy~";
             const amount = parseFloat(operation.balanceChange / 1000000);  // Use operation.balance instead of operation.account.balance
 	    if (inflowsMap.has(address))
-                intflowsMap.set(address, inflowsMap.get(address) + amount);
+                inflowsMap.set(address, inflowsMap.get(address) + amount);
 	    else
                 inflowsMap.set(address, amount);
             addressTxCount.set(address, 1);
