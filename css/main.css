@@ -41,12 +41,12 @@ h1 {
     display: flex;
     justify-content: space-around;
     width: 100%;
-    max-width: 300px;
-    margin-top: 10px;
+    max-width: 380px;
 }
 
 .button-container button {
-    width: 36px;
+    width: 24px;
+	height:24px;
     border: none;
     background-color: transparent;
     border-radius: 5px;
