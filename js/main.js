@@ -5,6 +5,324 @@ let offset = 0; // Offset for pagination
 let history = []; // History of visited addresses
 let historyIndex = -1; // Index in the history array
 
+/// Add CSS for the dropdown that matches the page style
+// Add CSS for the dropdown that matches the page style
+const style = document.createElement('style');
+style.textContent = `
+    .address-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: rgba(249, 249, 249, 0.95);
+        border: 1px solid rgba(77, 77, 77, 0.3);
+        border-radius: 5px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        display: none;
+        backdrop-filter: blur(5px);
+        margin-top: 5px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(77, 77, 77, 0.5) transparent;
+    }
+    
+    .address-dropdown::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .address-dropdown::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .address-dropdown::-webkit-scrollbar-thumb {
+        background-color: rgba(77, 77, 77, 0.5);
+        border-radius: 3px;
+    }
+    
+    .address-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(77, 77, 77, 0.1);
+        transition: all 0.2s ease;
+    }
+    
+    .address-item:last-child {
+        border-bottom: none;
+    }
+    
+    .address-item:hover, .address-item.focused {
+        background-color: rgba(77, 77, 77, 0.1);
+    }
+    
+    .address-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        margin-right: 12px;
+        background-color: rgba(77, 77, 77, 0.1);
+        object-fit: cover;
+        border: 1px solid rgba(77, 77, 77, 0.2);
+    }
+    
+    .address-info {
+        flex-grow: 1;
+        overflow: hidden;
+    }
+    
+    .address-alias {
+        font-weight: 600;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #333;
+    }
+    
+    .address-value {
+        font-size: 0.85em;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: monospace;
+    }
+    
+    .no-results {
+        padding: 12px 15px;
+        color: #666;
+        text-align: center;
+        font-style: italic;
+    }
+`;
+document.head.appendChild(style);
+
+const dropdown = document.createElement('div');
+dropdown.className = 'address-dropdown';
+
+// Position the dropdown correctly
+const inputField = document.getElementById('target-address');
+const inputContainer = inputField.parentElement;
+inputContainer.style.position = 'relative';
+inputContainer.appendChild(dropdown);
+
+// Set up the input event listener for address suggestions
+const addressInput = document.getElementById('target-address');
+let timeout = null;
+
+addressInput.addEventListener('input', function() {
+    const query = this.value.trim();
+    
+    // Clear any existing timeout
+    if (timeout) {
+        clearTimeout(timeout);
+    }
+    
+    // Close dropdown if query is empty
+    if (!query) {
+        dropdown.style.display = 'none';
+        return;
+    }
+    
+    // Set a timeout to prevent too many API calls
+    timeout = setTimeout(() => {
+        fetchAddressSuggestions(query);
+    }, 300);
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    if (!addressInput.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = 'none';
+    }
+});
+
+// Prevent form submission when selecting from dropdown
+addressInput.addEventListener('keydown', function(event) {
+    if (event.key === 'ArrowDown' && dropdown.style.display !== 'none') {
+        event.preventDefault();
+        focusNextItem();
+    } else if (event.key === 'ArrowUp' && dropdown.style.display !== 'none') {
+        event.preventDefault();
+        focusPreviousItem();
+    } else if (event.key === 'Enter' && dropdown.style.display !== 'none') {
+        const focused = dropdown.querySelector('.address-item.focused');
+        if (focused) {
+            event.preventDefault();
+            selectAddress(focused.dataset.address, focused.dataset.alias);
+        }
+    } else if (event.key === 'Escape') {
+        dropdown.style.display = 'none';
+    }
+});
+
+// Function to fetch address suggestions from TzKT API
+async function fetchAddressSuggestions(query) {
+    try {
+        showLoadingInDropdown();
+        
+        const response = await fetch(`https://back.tzkt.io/v1/suggest/accounts/${query}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const suggestions = await response.json();
+        
+        if (suggestions && suggestions.length > 0) {
+            renderDropdown(suggestions);
+        } else {
+            showNoResultsMessage();
+        }
+    } catch (error) {
+        console.error('Error fetching address suggestions:', error);
+        showErrorMessage();
+    }
+}
+
+// Show loading state in dropdown
+function showLoadingInDropdown() {
+    dropdown.innerHTML = '<div class="no-results">Loading suggestions...</div>';
+    dropdown.style.display = 'block';
+}
+
+// Show no results message
+function showNoResultsMessage() {
+    dropdown.innerHTML = '<div class="no-results">No matching addresses found</div>';
+    dropdown.style.display = 'block';
+    
+    // Hide after a delay
+    setTimeout(() => {
+        dropdown.style.display = 'none';
+    }, 2000);
+}
+
+// Show error message
+function showErrorMessage() {
+    dropdown.innerHTML = '<div class="no-results">Error fetching suggestions</div>';
+    dropdown.style.display = 'block';
+    
+    // Hide after a delay
+    setTimeout(() => {
+        dropdown.style.display = 'none';
+    }, 2000);
+}
+
+window.addEventListener('resize', updateDropdownPosition);
+
+function updateDropdownPosition() {
+    const inputRect = inputField.getBoundingClientRect();
+    dropdown.style.width = `${inputRect.width}px`;
+    dropdown.style.left = `${inputField.offsetLeft}px`;
+    dropdown.style.top = `${inputField.offsetTop + inputRect.height + 5}px`;
+}
+
+// Function to render the dropdown with suggestions
+function renderDropdown(suggestions) {
+    dropdown.innerHTML = '';
+    
+    // Limit to 10 suggestions for better UX
+    const limitedSuggestions = suggestions.slice(0, 10);
+    
+    limitedSuggestions.forEach(suggestion => {
+        const item = document.createElement('div');
+        item.className = 'address-item';
+        item.dataset.address = suggestion.address;
+        item.dataset.alias = suggestion.alias || '';
+        
+        const avatarUrl = `https://services.tzkt.io/v1/avatars/${suggestion.address}`;
+        
+        // Determine display order based on whether alias exists
+        let displayContent = '';
+        if (suggestion.alias) {
+            displayContent = `
+                <div class="address-alias">${suggestion.alias}</div>
+                <div class="address-value">${suggestion.address}</div>
+            `;
+        } else {
+            displayContent = `<div class="address-value">${suggestion.address}</div>`;
+        }
+        
+        item.innerHTML = `
+            <img src="${avatarUrl}" class="address-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'28\\' height=\\'28\\' viewBox=\\'0 0 28 28\\'%3E%3Crect width=\\'28\\' height=\\'28\\' fill=\\'%23e0e0e0\\'/%3E%3Ctext x=\\'50%\\' y=\\'50%\\' font-size=\\'14\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\' fill=\\'%23666\\'%3E${suggestion.address.charAt(2)}%3C/text%3E%3C/svg%3E';">
+            <div class="address-info">
+                ${displayContent}
+            </div>
+        `;
+        
+        item.addEventListener('click', function() {
+            selectAddress(suggestion.address, suggestion.alias);
+        });
+        
+        dropdown.appendChild(item);
+    });
+    
+    dropdown.style.display = 'block';
+    
+    // Update dropdown position
+    updateDropdownPosition();
+}
+
+// Function to select an address from the dropdown
+function selectAddress(address, alias) {
+    addressInput.value = address;
+    dropdown.style.display = 'none';
+    
+    // Focus the input field
+    addressInput.focus();
+    
+    // Use the existing notification system
+    const notification = document.getElementById('notification');
+    if (notification) {
+        notification.textContent = `Selected: ${alias || address}`;
+        notification.style.display = 'block';
+        setTimeout(() => {
+            notification.style.opacity = 1;
+        }, 10);
+
+        setTimeout(() => {
+            notification.style.opacity = 0;
+            setTimeout(() => {
+                notification.style.display = 'none';
+                notification.textContent = 'Address and transactions copied to clipboard/console';
+            }, 500);
+        }, 2000);
+    }
+}
+
+// Navigation within the dropdown using arrow keys
+function focusNextItem() {
+    const items = dropdown.querySelectorAll('.address-item');
+    const focused = dropdown.querySelector('.address-item.focused');
+    
+    if (!focused && items.length > 0) {
+        items[0].classList.add('focused');
+    } else if (focused) {
+        const currentIndex = Array.from(items).indexOf(focused);
+        if (currentIndex < items.length - 1) {
+            focused.classList.remove('focused');
+            items[currentIndex + 1].classList.add('focused');
+            items[currentIndex + 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+}
+
+function focusPreviousItem() {
+    const items = dropdown.querySelectorAll('.address-item');
+    const focused = dropdown.querySelector('.address-item.focused');
+    
+    if (focused) {
+        const currentIndex = Array.from(items).indexOf(focused);
+        if (currentIndex > 0) {
+            focused.classList.remove('focused');
+            items[currentIndex - 1].classList.add('focused');
+            items[currentIndex - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+}
+
 // On page load, check the location hash for saved values and populate inputs
 document.addEventListener('DOMContentLoaded', function() {
     const hash = location.hash.slice(1); // Get the hash without the leading #
