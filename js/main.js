@@ -290,6 +290,7 @@ function selectAddress(address, alias) {
             }, 500);
         }, 2000);
     }
+    go();
 }
 
 // Navigation within the dropdown using arrow keys
@@ -339,24 +340,24 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('tez-limit').value = tezLimitValue;
             document.getElementById('limit-tez').textContent = tezLimitValue + ' tez';
         }
-        document.getElementById('confirm-button').click(); // Trigger data fetch and diagram generation
+        go(); // Trigger data fetch and diagram generation
     }
 });
 
 // Trigger data fetch on Enter key press in the address input field
 input.addEventListener('keydown', function(event) {
     if (event.keyCode === 13) {
-        document.getElementById('confirm-button').click();
+        go();
     }
 });
 
 // Handle confirm button click to fetch and display data
-document.getElementById('confirm-button').addEventListener('click', function() {
+function go() {
     const targetAddress = document.getElementById('target-address').value.trim();
     const limit = document.getElementById('result-limit').value;
     updateLocationHash(); // Update location hash
     generateDataAndDrawDiagram(targetAddress, limit); // Fetch data and draw diagram
-});
+}
 
 // Update limit display and location hash on input change
 document.getElementById('result-limit').addEventListener('input', function() {
@@ -727,7 +728,7 @@ function drawSankeyDiagram(targetAddress, inflows, outflows, addressToAliasMap, 
             showNotification();
             if (relatedAddress !== "~Activation~" && relatedAddress !== "~Bootstrap~" && relatedAddress !== "~Subsidy~") {
                 document.getElementById('target-address').value = relatedAddress.trim();
-                document.getElementById('confirm-button').click();
+                go();
             }
         }
     });
