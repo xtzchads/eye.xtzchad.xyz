@@ -122,7 +122,7 @@ addressInput.addEventListener('input', function() {
     }
     
     // Close dropdown if query is empty
-    if (!query) {
+    if (!query || query.length>30) {
         dropdown.style.display = 'none';
         return;
     }
