@@ -124,6 +124,8 @@ addressInput.addEventListener('input', function() {
     // Close dropdown if query is empty
     if (!query || query.length>30) {
         dropdown.style.display = 'none';
+	if (query.length==36)
+		go();
         return;
     }
     
