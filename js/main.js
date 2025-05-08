@@ -223,44 +223,49 @@ function updateDropdownPosition() {
 
 // Function to render the dropdown with suggestions
 function renderDropdown(suggestions) {
+    // Clear existing dropdown content
     dropdown.innerHTML = '';
     
     // Limit to 10 suggestions for better UX
     const limitedSuggestions = suggestions.slice(0, 10);
     
     limitedSuggestions.forEach(suggestion => {
+        // Create elements properly instead of using innerHTML
         const item = document.createElement('div');
         item.className = 'address-item';
         item.dataset.address = suggestion.address;
         item.dataset.alias = suggestion.alias || '';
+        const avatar = document.createElement('img');
+        avatar.className = 'address-avatar';
+        avatar.src = `https://services.tzkt.io/v1/avatars/${encodeURIComponent(suggestion.address)}`;
         
-        const avatarUrl = `https://services.tzkt.io/v1/avatars/${suggestion.address}`;
+        avatar.onerror = function() {
+            const initial = suggestion.address.charAt(2);
+            const encodedInitial = encodeURIComponent(initial);
+            this.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' fill='%23e0e0e0'/%3E%3Ctext x='50%' y='50%' font-size='14' text-anchor='middle' dominant-baseline='middle' fill='%23666'%3E${encodedInitial}%3C/text%3E%3C/svg%3E`;
+        };
         
-        // Determine display order based on whether alias exists
-        let displayContent = '';
+        const addressInfo = document.createElement('div');
+        addressInfo.className = 'address-info';
         if (suggestion.alias) {
-            displayContent = `
-                <div class="address-alias">${suggestion.alias}</div>
-                <div class="address-value">${suggestion.address}</div>
-            `;
-        } else {
-            displayContent = `<div class="address-value">${suggestion.address}</div>`;
+            const aliasDiv = document.createElement('div');
+            aliasDiv.className = 'address-alias';
+            aliasDiv.textContent = suggestion.alias;
+            addressInfo.appendChild(aliasDiv);
         }
-        
-        item.innerHTML = `
-            <img src="${avatarUrl}" class="address-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'28\\' height=\\'28\\' viewBox=\\'0 0 28 28\\'%3E%3Crect width=\\'28\\' height=\\'28\\' fill=\\'%23e0e0e0\\'/%3E%3Ctext x=\\'50%\\' y=\\'50%\\' font-size=\\'14\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\' fill=\\'%23666\\'%3E${suggestion.address.charAt(2)}%3C/text%3E%3C/svg%3E';">
-            <div class="address-info">
-                ${displayContent}
-            </div>
-        `;
-        
+        const addressDiv = document.createElement('div');
+        addressDiv.className = 'address-value';
+        addressDiv.textContent = suggestion.address;
+        addressInfo.appendChild(addressDiv);
+        item.appendChild(avatar);
+        item.appendChild(addressInfo);
         item.addEventListener('click', function() {
             selectAddress(suggestion.address, suggestion.alias);
         });
-        
         dropdown.appendChild(item);
     });
     
+    // Show dropdown
     dropdown.style.display = 'block';
     
     // Update dropdown position
