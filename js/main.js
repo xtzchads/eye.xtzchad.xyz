@@ -371,6 +371,7 @@ document.getElementById('result-limit').addEventListener('input', function() {
     const limitValue = document.getElementById('result-limit').value;
     document.getElementById('limit-value').textContent = limitValue + ' txes';
     updateLocationHash();
+	go();
 });
 
 // Update tez limit display and location hash on input change
@@ -378,6 +379,7 @@ document.getElementById('tez-limit').addEventListener('input', function() {
     const limitValue = document.getElementById('tez-limit').value;
     document.getElementById('limit-tez').textContent = limitValue + ' tez';
     updateLocationHash();
+	go();
 });
 
 // Update the location hash with current input values
